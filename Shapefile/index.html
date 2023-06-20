@@ -7,15 +7,37 @@
     #map {
       height: 950px;
     }
+    
+    .legend {
+      position: bottomright;
+      background-color: white;
+      padding: 10px;
+      font-size: 12px;
+      line-height: 18px;
+      color: #555555;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+    }
+    
+    .legend-item:before {
+      content: "";
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      margin-right: 5px;
+      background-color: blue;
+    }
   </style>
 </head>
 
 <body>
   <div id="map"></div>
+  <div id="legend" class="legend"></div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/proj4leaflet/src/proj4leaflet.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.js" integrity="sha512-eYE5o0mD7FFys0tVot8r4AnRXzVVXhjVpzNK+AcHkg4zNLvUAaCOJyLFKjmfpJMj6L/tuCzMN7LULBvNDhy5pA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <script>
     // Create the Leaflet map
@@ -42,17 +64,27 @@
     // Set the default basemap
     esriWorldImagery.addTo(map);
 
-    var geojsonLayer = new L.GeoJSON.AJAX("http://localhost:8000/IRYP_v2_yedoma_domain.geojson");       
-      geojsonLayer.addTo(map);
-
     // Add GeoJSON overlay
-    //fetch('http://localhost:8000/IRYP_v2_yedoma_domain.geojson', {
-    //  mode: 'no-cors'
-    //})
-    //  .then(response => response.json())
-    //  .then(geojson => {
-    //    L.geoJSON(geojson).addTo(map);
-    //  });
+    fetch('IRYP_v2_yedoma_domain.geojson')
+      .then(response => response.json())
+      .then(geojson => {
+        L.geoJSON(geojson).addTo(map);
+        
+        // Create a legend
+        var legend = L.control({ position: 'bottomright' });
+
+        legend.onAdd = function(map) {
+          var div = L.DomUtil.create('div', 'legend');
+          div.innerHTML = '<h4>Legend</h4>' +
+            '<div class="legend-item">' +
+              '<div class="legend-box"></div>' +
+              '<p>Yedoma Domain</p>' +
+            '</div>';
+          return div;
+        };
+
+        legend.addTo(map);
+      });
   </script>
 </body>
 
