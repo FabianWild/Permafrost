@@ -3,7 +3,7 @@ import socketserver
 
 class CORSRequestHandler(SimpleHTTPRequestHandler):
     def end_headers(self):
-        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Origin', 'http://127.0.0.1:5500')
         super().end_headers()
 
 # Specify the desired port number
