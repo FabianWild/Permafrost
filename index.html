@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map {
+      height: 950px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/proj4leaflet/src/proj4leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.js" integrity="sha512-eYE5o0mD7FFys0tVot8r4AnRXzVVXhjVpzNK+AcHkg4zNLvUAaCOJyLFKjmfpJMj6L/tuCzMN7LULBvNDhy5pA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script>
+    // Create the Leaflet map
+    var map = L.map('map').setView([68.516, 161.435], 5);
+
+    // Add Esri World Imagery basemap
+    var esriWorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri'
+    });
+
+    // Add OpenStreetMap basemap
+    var openStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: 'Map data &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+    });
+
+    // Add basemap control to switch between layers
+    var baseLayers = {
+      'Esri World Imagery': esriWorldImagery,
+      'OpenStreetMap': openStreetMap
+    };
+
+    L.control.layers(baseLayers).addTo(map);
+
+    // Set the default basemap
+    esriWorldImagery.addTo(map);
+
+    var geojsonLayer = new L.GeoJSON.AJAX("http://localhost:8000/IRYP_v2_yedoma_domain.geojson");       
+      geojsonLayer.addTo(map);
+
+    // Add GeoJSON overlay
+    //fetch('http://localhost:8000/IRYP_v2_yedoma_domain.geojson', {
+    //  mode: 'no-cors'
+    //})
+    //  .then(response => response.json())
+    //  .then(geojson => {
+    //    L.geoJSON(geojson).addTo(map);
+    //  });
+  </script>
+</body>
+
+</html>
