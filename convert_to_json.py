@@ -8,8 +8,8 @@ def convert_shp_to_geojson(shp_file, geojson_file):
     gdf.to_file(geojson_file, driver='GeoJSON')
 
 # Example usage
-shp_file_path = 'C:/Permafrost/Permafrost/Shapefile/IRYP_v2_yedoma_domain.shp'
-geojson_file_path = 'C:/Permafrost/Permafrost/Shapefile/IRYP_v2_yedoma_domain.geojson'
+shp_file_path = 'D:/Permafrost_Interaktiv/Permafrost/permaice.shp'
+geojson_file_path = 'D:/Permafrost_Interaktiv/Permafrost/permaice.geojson'
 
 convert_shp_to_geojson(shp_file_path, geojson_file_path)
 

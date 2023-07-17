@@ -38,53 +38,127 @@
   <div id="legend" class="legend"></div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-providers/1.13.0/leaflet-providers.min.js" integrity="sha512-5EYsvqNbFZ8HX60keFbe56Wr0Mq5J1RrA0KdVcfGDhnjnzIRsDrT/S3cxdzpVN2NGxAB9omgqnlh4/06TvWCMw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
 
   <script>
     // Create the Leaflet map
-    var map = L.map('map').setView([68.516, 161.435], 5);
-
-    // Add Esri World Imagery basemap
-    var esriWorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; Esri'
-    });
-
-    // Add OpenStreetMap basemap
-    var openStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: 'Map data &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
-    });
-
-    // Add basemap control to switch between layers
-    var baseLayers = {
-      'Esri World Imagery': esriWorldImagery,
-      'OpenStreetMap': openStreetMap
+    let map = L.map("map", {
+    fullscreenControl: true
+    }).setView([68.51153040985831, 161.50266609140104], 5);
+    
+    // Add themalayer control to switch between layers
+    let themaLayers = {
+      YedomaDomain: L.featureGroup(),
+      YedomaConfidence: L.featureGroup(),
+      PermafrostExtent: L.featureGroup()
     };
 
-    L.control.layers(baseLayers).addTo(map);
+    let layerControl = L.control.layers({
+    "Esri WorldTopoMap": L.tileLayer.provider("Esri.WorldTopoMap"),
+    "Esri WorldImagery": L.tileLayer.provider("Esri.WorldImagery").addTo(map)
+    },
+    {
+        "YedomaDomain": themaLayers.YedomaDomain,
+        "YedomaConfidence": themaLayers.YedomaConfidence,
+        "PermafrostExtent": themaLayers.PermafrostExtent},{collapsed: false}).addTo(map);
 
-    // Set the default basemap
-    esriWorldImagery.addTo(map);
-
-    // Add GeoJSON overlay
-    fetch('IRYP_v2_yedoma_domain.geojson')
-      .then(response => response.json())
-      .then(geojson => {
-        L.geoJSON(geojson).addTo(map);
-        
-        // Create a legend
-        var legend = L.control({ position: 'bottomright' });
-
-        legend.onAdd = function(map) {
-          var div = L.DomUtil.create('div', 'legend');
-          div.innerHTML = '<h4>Legend</h4>' +
-            '<div class="legend-item">' +
-              '<div class="legend-box"></div>' +
-              '<p>Yedoma Domain</p>' +
-            '</div>';
-          return div;
+  
+fetch('IRYP_v2_yedoma_domain.geojson')
+  .then(response => response.json())
+  .then(geojson => {
+    L.geoJSON(geojson, {
+      style: function(feature) {
+        return {
+          opacity: 0.5
         };
+      }
+    }).addTo(themaLayers.YedomaDomain);
+  });
 
-        legend.addTo(map);
+fetch('IRYP_v2_yedoma_confidence_downsample.geojson')
+  .then(response => response.json())
+  .then(geojson => {
+    L.geoJSON(geojson, {
+      style: function(feature) {
+        return {
+          opacity: 0.5,
+          
+          
+        };
+      },
+      onEachFeature: function(feature, layer) {
+            layer.on('click', function() {
+              if (layer.feature && layer.feature.properties) {
+                var properties = layer.feature.properties;
+                var confidence = properties.confidence;
+                var popupContent = "<h4>Confidence/Sicherheit: " + confidence + "</h4>";
+                layer.bindPopup(popupContent).openPopup();
+              }  
+              });
+            if(layer.feature.properties.confidence == 'confirmed') {    
+              layer.setStyle({fillColor :'green', color: "green"});
+            }
+            else if(layer.feature.properties.confidence == 'likely') {    
+              layer.setStyle({fillColor :'yellow', color: "yellow"});
+            }
+            else if(layer.feature.properties.confidence == 'uncertain') {    
+              layer.setStyle({fillColor :'orange', color: "orange"});
+            }
+        }}).addTo(themaLayers.YedomaConfidence);
       });
+    
+
+fetch('permaice.geojson')
+  .then(response => response.json())
+  .then(geojson => {
+    L.geoJSON(geojson, {
+      style: function(feature) {
+        return {
+          opacity: 0.5
+        };
+      }
+    }).addTo(themaLayers.PermafrostExtent);
+  });
+
+
+// let prop = feature.properties;
+// if(layer.prop.confidence == 'confirmed') {    
+//   layer.setStyle({fillColor :'green'});
+// }
+// else if(layer.prop.confidence == "likely") {
+//   layer.setStyle({fillColor :'yellow'});
+// }
+// else if(layer.prop.confidence == "uncertain") {
+//   layer.setStyle({fillColor :'orange'});
+// };
+
+
+var pp_icon = L.icon({
+  iconUrl: 'icons/bison.png',
+  iconAnchor: [16, 37],
+  popupAnchor: [0, -37],
+
+});
+
+
+L.marker([68.516, 161.435], { icon: pp_icon }).addTo(map).bindPopup(`<h4>Pleistocene Park</h4>`).openPopup();
+
+
+    // Create a legend
+    var legend = L.control({ position: 'bottomright' });
+
+    legend.onAdd = function(map) {
+      var div = L.DomUtil.create('div', 'legend');
+      div.innerHTML = '<h4>Legend</h4>' +
+        '<div class="legend-item">' +
+        '<div class="legend-box"></div>' +
+        '<p>Yedoma Domain</p>' +
+        '</div>';
+      return div;
+    };
+
+    legend.addTo(map);
   </script>
 </body>
 
