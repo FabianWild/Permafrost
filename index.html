@@ -22,14 +22,28 @@
       align-items: center;
     }
 
-    .legend-item:before {
-      content: "";
-      display: inline-block;
+    .legend-box {
       width: 12px;
       height: 12px;
       margin-right: 5px;
+    }
+
+    .legend-box--green {
+      background-color: green;
+    }
+
+    .legend-box--yellow {
+      background-color: yellow;
+    }
+
+    .legend-box--orange {
+      background-color: orange;
+    }
+
+    .legend-box--blue {
       background-color: blue;
     }
+
   </style>
 </head>
 
@@ -138,15 +152,27 @@
 
     L.marker([68.516, 161.435], { icon: pp_icon }).addTo(map).bindPopup(`<h4>Pleistocene Park</h4>`).openPopup();
 
-    // Create a legend
     var legend = L.control({ position: 'bottomright' });
-
+    // Create a legend
     legend.onAdd = function (map) {
       var div = L.DomUtil.create('div', 'legend');
-      div.innerHTML = '<h4>Legend</h4>' +
+      div.innerHTML =
+        '<h4>Legend</h4>' +
         '<div class="legend-item">' +
-        '<div class="legend-box"></div>' +
+        '<div class="legend-box legend-box--blue"></div>' +
         '<p>Yedoma Domain</p>' +
+        '</div>' +
+        '<div class="legend-item">' +
+        '<div class="legend-box legend-box--green"></div>' +
+        '<p>Confirmed</p>' +
+        '</div>' +
+        '<div class="legend-item">' +
+        '<div class="legend-box legend-box--yellow"></div>' +
+        '<p>Likely</p>' +
+        '</div>' +
+        '<div class="legend-item">' +
+        '<div class="legend-box legend-box--orange"></div>' +
+        '<p>Uncertain</p>' +
         '</div>';
       return div;
     };
