@@ -224,15 +224,6 @@ $(document).ready(function() {
     };
 
     legend.addTo(map);
-
-    // Keep map full-size
-    $(window).on("resize", function () {
-      resize();
-      map.invalidateSize({
-        debounceMoveend: true
-      });
-    });
-    $(window).trigger("resize");
   });
 
 
