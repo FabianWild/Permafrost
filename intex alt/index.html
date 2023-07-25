@@ -12,7 +12,6 @@
   <script src="js/shp.js"></script>
   <script src="js/polarmap-src.js"></script>
   <script src="js/leaflet.shpfile.js"></script>
-  <script src="js/autosize.js"></script>
 
   <style>
     body {
@@ -22,7 +21,7 @@
 
     #map {
     min-width: 1920px;
-    min-height: 1315px;
+    min-height: 1350px;
     }
 
     .legend {
@@ -70,52 +69,72 @@
   <div id="legend" class="legend"></div>
   
   <script>
-  var map;
+     var resize = function () {
+    $("#map").css({
+      width: $(window).width(),
+      height: $(window).height()
+    });
+  };
 
-// Create object to define tile provider settings and transformations. Supports
-// all Leaflet TileLayer options.
-var projectedTiles = {
-  "EPSG:3571 Bering Sea": L.PolarMap.layer3571,
-  "EPSG:3572 Alaska"    : L.PolarMap.layer3572,
-  "EPSG:3573 Canada"    : L.PolarMap.layer3573,
-  "EPSG:3574 Atlantic"  : L.PolarMap.layer3574,
-  "EPSG:3575 Europe"    : L.PolarMap.layer3575,
-  "EPSG:3576 Russia"    : L.PolarMap.layer3576
-};
+  $(document).ready(function () {
+    // All the details specific to the custom tile layer.
+    // Custom extent for our EPSG:3571-3576 tiles
+    var extent = 11000000 + 9036842.762 + 667;
+    var tileDetails = {
+      code: 'EPSG:3573',
+      proj4def: '+proj=laea +lat_0=90 +lon_0=-100 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs',
+      origin: [-extent, extent],
+      tilesURL: 'http://{s}.tiles.arcticconnect.ca/osm_3573/{z}/{x}/{y}.png',
+      attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+      zoom: {
+        min: 0,
+        max: 10
+      }
+    };
 
-// Set up next/prev linked list
-$.each(projectedTiles, function (layerName, layer) {
-  var keys = Object.keys(projectedTiles);
-  var index = keys.indexOf(layerName);
-  var prev = (index === 0) ? keys.length - 1 : index - 1;
-  var next = (index === keys.length - 1) ? 0 : index + 1;
+    // Generate Resolutions Array from origin information.
+    // maxResolution is map width/height (origin[1] - origin[0]) metres divided
+    // by 256 pixels (size of zoom level 0 tile). All other zoom levels, or
+    // resolutions, are a factor of that.
+    var maxResolution = (tileDetails.origin[1] - tileDetails.origin[0]) / 256;
+    var resolutions = [];
+    for (var i = tileDetails.zoom.min; i <= tileDetails.zoom.max; i++) {
+      resolutions.push(maxResolution / Math.pow(2, i));
+    };
 
-  layer.prev = projectedTiles[keys[prev]];
-  layer.next = projectedTiles[keys[next]];
-});
+    // Create new CRS for EPSG:3573.
+    // Proj4 definition string can be found online.
+    var CRS = new L.Proj.CRS(tileDetails.code,
+      tileDetails.proj4def, {
+        origin: tileDetails.origin,
+        resolutions: resolutions
+      });
 
-// Initialization
-$(document).ready(function() {
-  Autosize.enable();
+    
 
-  // Load PolarMap
-  map = L.PolarMap.map('map', {
-    baseLayer: projectedTiles["EPSG:3571 Bering Sea"],
-    center: [90, 0],
-    zoom: 2
-  });
+    var map = polarMap("map");
+    // var map = L.map('map', {
+    //   continuousWorld: true,
+    //   minZoom: tileDetails.zoom.min,
+    //   maxZoom: tileDetails.zoom.max,
+    //   crs: CRS
+    // });
 
-  var layersControl = L.control.layers(projectedTiles, null);
-  layersControl.addTo(map);
+    L.tileLayer(tileDetails.tilesURL, {
+      attribution: tileDetails.attribution
+    }).addTo(map);
 
-  // Add shapefiles
-  var boundsLimit = L.latLngBounds([45,-180], [90,180]);
+
+    // Add layer control to switch between layers
+
+  let layerControl = L.control.layers( {
+  }).addTo(map);
 
   var Domain = L.shapefile("IRYP_v2_yedoma_domain", {
   });
 
   
-  layersControl.addOverlay(Domain, "Yedoma Domain");
+  layerControl.addOverlay(Domain, "Yedoma Domain");
 
   var Confidence = L.shapefile("IRYP_v2_yedoma_confidence_downsample", {
     onEachFeature: function (feature, layer) {
@@ -138,7 +157,7 @@ $(document).ready(function() {
   });
 
   
-  layersControl.addOverlay(Confidence, "Yedoma Confidence Classification");
+  layerControl.addOverlay(Confidence, "Yedoma Confidence Classification");
 
       
   var Permafrost = L.shapefile("permaice", {
@@ -146,47 +165,12 @@ $(document).ready(function() {
   });
 
   
-  layersControl.addOverlay(Permafrost, "Overall Permafrost Area");
+  layerControl.addOverlay(Permafrost, "Overall Permafrost Area");
 
+  
 
-  // Wire up rotation controls
-  var getBaseLayer = function() {
-    var foundLayer = null;
-    $.each(projectedTiles, function (layerName, layer) {
-      if (map.hasLayer(layer)) {
-        foundLayer = layer;
-      }
-    });
-    return foundLayer;
-  };
-
-  var rotationControls = L.PolarMap.Control.rotation({
-    onRotateCW: function() {
-      map.loadTileProjection(getBaseLayer().next);
-    },
-
-    onRotateCCW: function() {
-      map.loadTileProjection(getBaseLayer().prev);
-    }
-  });
-  rotationControls.addTo(map);
-
-  // Set location hash
-  var hash = L.PolarMap.Util.hash(map, {
-    getBaseLayer: function () {
-      return getBaseLayer().options.name;
-    },
-
-    setBaseLayer: function (name) {
-      $.each(projectedTiles, function (layerName, layer) {
-        if (layer.options.name === name) {
-          map.loadTileProjection(layer);
-        }
-      });
-    }
-  });
-
-  // Use standard Lat/Lng for markers, they will be reprojected to the
+   
+    // Use standard Lat/Lng for markers, they will be reprojected to the
     // map's CRS automatically.
     var pp_icon = L.icon({
       iconUrl: 'icons/bison.png',
@@ -234,7 +218,6 @@ $(document).ready(function() {
     });
     $(window).trigger("resize");
   });
-
 
   </script>
 </body>
