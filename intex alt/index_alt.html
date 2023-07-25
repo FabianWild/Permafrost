@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map {
+      height: 950px;
+    }
+
+    .legend {
+      position: bottomright;
+      background-color: white;
+      padding: 10px;
+      font-size: 12px;
+      line-height: 18px;
+      color: #555555;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+    }
+
+    .legend-box {
+      width: 12px;
+      height: 12px;
+      margin-right: 5px;
+    }
+
+    .legend-box--green {
+      background-color: green;
+    }
+
+    .legend-box--yellow {
+      background-color: yellow;
+    }
+
+    .legend-box--orange {
+      background-color: orange;
+    }
+
+    .legend-box--blue {
+      background-color: blue;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+  <div id="legend" class="legend"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-providers/1.13.0/leaflet-providers.min.js"
+    integrity="sha512-5EYsvqNbFZ8HX60keFbe56Wr0Mq5J1RrA0KdVcfGDhnjnzIRsDrT/S3cxdzpVN2NGxAB9omgqnlh4/06TvWCMw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script>
+    // Create the Leaflet map
+    let map = L.map("map", {
+      fullscreenControl: true,
+      worldCopyJump: true, // Enable the world copy jump option
+    }).setView([64.51153040985831, 161.435], 4); // Set the initial center and zoom level to show both Siberia and Alaska
+
+    // Add themalayer control to switch between layers
+    let themaLayers = {
+      YedomaDomain: L.featureGroup(),
+      YedomaConfidence: L.featureGroup(),
+      PermafrostExtent: L.featureGroup()
+    };
+
+    let layerControl = L.control.layers({
+      "Esri WorldTopoMap": L.tileLayer.provider("Esri.WorldTopoMap"),
+      "Esri WorldImagery": L.tileLayer.provider("Esri.WorldImagery").addTo(map)
+    }, {
+      "YedomaDomain": themaLayers.YedomaDomain,
+      "YedomaConfidence": themaLayers.YedomaConfidence,
+      "PermafrostExtent": themaLayers.PermafrostExtent
+    }, {
+      collapsed: false
+    }).addTo(map);
+
+    fetch('IRYP_v2_yedoma_domain.geojson')
+      .then(response => response.json())
+      .then(geojson => {
+        L.geoJSON(geojson, {
+          style: function (feature) {
+            return {
+              opacity: 0.5
+            };
+          }
+        }).addTo(themaLayers.YedomaDomain);
+
+        // Duplicate the YedomaDomain layer and add it again with an adjusted position and popup handling
+        duplicateAndAdjustPosition(geojson, themaLayers.YedomaDomain);
+      });
+
+    fetch('IRYP_v2_yedoma_confidence_downsample.geojson')
+      .then(response => response.json())
+      .then(geojson => {
+        L.geoJSON(geojson, {
+          style: function (feature) {
+            return {
+              opacity: 0.5,
+            };
+          },
+          onEachFeature: function (feature, layer) {
+            layer.on('click', function () {
+              if (layer.feature && layer.feature.properties) {
+                var properties = layer.feature.properties;
+                var confidence = properties.confidence;
+                var popupContent = "<h4>Confidence/Sicherheit: " + confidence + "</h4>";
+                layer.bindPopup(popupContent).openPopup();
+              }
+            });
+            if (layer.feature.properties.confidence == 'confirmed') {
+              layer.setStyle({ fillColor: 'green', color: "green" });
+            } else if (layer.feature.properties.confidence == 'likely') {
+              layer.setStyle({ fillColor: 'yellow', color: "yellow" });
+            } else if (layer.feature.properties.confidence == 'uncertain') {
+              layer.setStyle({ fillColor: 'orange', color: "orange" });
+            }
+          }
+        }).addTo(themaLayers.YedomaConfidence);
+
+        // Duplicate the YedomaConfidence layer and add it again with an adjusted position and popup handling
+        duplicateAndAdjustPosition(geojson, themaLayers.YedomaConfidence);
+      });
+
+
+    fetch('permaice.geojson')
+      .then(response => response.json())
+      .then(geojson => {
+        L.geoJSON(geojson, {
+          style: function (feature) {
+            return {
+              opacity: 0.5
+            };
+          }
+        }).addTo(themaLayers.PermafrostExtent);
+
+        // Duplicate the PermafrostExtent layer and add it again with an adjusted position and popup handling
+        duplicateAndAdjustPosition(geojson, themaLayers.PermafrostExtent);
+      });
+
+    var pp_icon = L.icon({
+      iconUrl: 'icons/bison.png',
+      iconAnchor: [16, 37],
+      popupAnchor: [0, -37],
+    });
+
+    L.marker([68.516, 161.435], { icon: pp_icon }).addTo(map).bindPopup(`<h4>Pleistocene Park</h4>`).openPopup();
+
+    var legend = L.control({ position: 'bottomright' });
+    // Create a legend
+    legend.onAdd = function (map) {
+      var div = L.DomUtil.create('div', 'legend');
+      div.innerHTML =
+        '<h4>Legend</h4>' +
+        '<div class="legend-item">' +
+        '<div class="legend-box legend-box--blue"></div>' +
+        '<p>Yedoma Domain</p>' +
+        '</div>' +
+        '<div class="legend-item">' +
+        '<div class="legend-box legend-box--green"></div>' +
+        '<p>Confirmed</p>' +
+        '</div>' +
+        '<div class="legend-item">' +
+        '<div class="legend-box legend-box--yellow"></div>' +
+        '<p>Likely</p>' +
+        '</div>' +
+        '<div class="legend-item">' +
+        '<div class="legend-box legend-box--orange"></div>' +
+        '<p>Uncertain</p>' +
+        '</div>';
+      return div;
+    };
+
+    legend.addTo(map);
+
+    // Function to duplicate layers and adjust positions for world copy jump
+    function duplicateAndAdjustPosition(geojson, layerGroup) {
+      var duplicateLayer = L.geoJSON(geojson, {
+        style: function (feature) {
+          return {
+            opacity: 0.5
+          };
+        },
+        onEachFeature: function (feature, layer) {
+          layer.on('click', function () {
+            if (layer.feature && layer.feature.properties) {
+              var properties = layer.feature.properties;
+              var confidence = properties.confidence;
+              var popupContent = "<h4>Confidence/Sicherheit: " + confidence + "</h4>";
+              layer.bindPopup(popupContent).openPopup();
+            }
+          });
+          if (layer.feature.properties.confidence == 'confirmed') {
+            layer.setStyle({ fillColor: 'green', color: "green" });
+          } else if (layer.feature.properties.confidence == 'likely') {
+            layer.setStyle({ fillColor: 'yellow', color: "yellow" });
+          } else if (layer.feature.properties.confidence == 'uncertain') {
+            layer.setStyle({ fillColor: 'orange', color: "orange" });
+          }
+        },
+      });
+
+      // Adjust the positions of the duplicated layers for world copy jump
+      duplicateLayer.eachLayer(function (clonedLayer) {
+        if (clonedLayer instanceof L.Marker || clonedLayer instanceof L.CircleMarker) {
+          clonedLayer.setLatLng(clonedLayer.getLatLng().wrap());
+        } else if (clonedLayer instanceof L.Polygon || clonedLayer instanceof L.MultiPolygon) {
+          clonedLayer.getLatLngs().forEach(function (latLngs) {
+            latLngs.forEach(function (latLng) {
+              latLng.lng = L.Util.wrapNum(latLng.lng, [0, 360], true);
+            });
+          });
+        } else if (clonedLayer instanceof L.Polyline || clonedLayer instanceof L.MultiPolyline) {
+          clonedLayer.getLatLngs().forEach(function (latLngs) {
+            latLngs.forEach(function (latLng) {
+              latLng.lng = L.Util.wrapNum(latLng.lng, [0, 360], true);
+            });
+          });
+        }
+
+        // Add the duplicated and adjusted layer to the layerGroup
+        clonedLayer.addTo(layerGroup);
+      });
+    }
+  </script>
+</body>
+
+</html>
