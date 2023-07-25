@@ -1,0 +1,45 @@
+body {
+padding: 0px;
+margin: 0px;
+}
+
+#map {
+min-width: 1920px;
+min-height: 1315px;
+}
+
+.legend {
+  position: bottomright;
+  background-color: white;
+  padding: 10px;
+  font-size: 12px;
+  line-height: 18px;
+  color: #555555;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+}
+
+.legend-box {
+  width: 12px;
+  height: 12px;
+  margin-right: 5px;
+}
+
+.legend-box--green {
+  background-color: green;
+}
+
+.legend-box--yellow {
+  background-color: yellow;
+}
+
+.legend-box--orange {
+  background-color: orange;
+}
+
+.legend-box--blue {
+  background-color: blue;
+}
