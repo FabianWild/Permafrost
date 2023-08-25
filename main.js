@@ -132,7 +132,7 @@ $(document).ready(function () {
     legend.onAdd = function (map) {
         var div = L.DomUtil.create('div', 'legend');
         div.innerHTML =
-            '<h4>Legend</h4>' +
+            '<h4>Legend - Yedoma Confidence</h4>' +
             '<div class="legend-item">' +
             '<div class="legend-box legend-box--blue"></div>' +
             '<p>Yedoma Domain</p>' +
