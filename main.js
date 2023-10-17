@@ -118,10 +118,10 @@ $(document).ready(function () {
     });
 
     // Marker Pleistocenepark
-    L.marker([1142518.716605, 2095779.346041], { icon: pp_icon }).addTo(map).bindPopup(`<h4>Pleistocene Park</h4>`).openPopup();
+    L.marker([68.51326155942857, 161.50600495305414], { icon: pp_icon }).addTo(map).bindPopup(`<h4>Pleistocene Park</h4>`).openPopup();
 
     // Set View to Marker Position
-    map.setView([1142518.716605, 2095779.346041], 5);
+    map.setView([68.51326155942857, 161.50600495305414], 5);
 
     // Create a legend
     var legend = L.control({ position: 'bottomright' });
