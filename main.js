@@ -26,7 +26,7 @@ $(document).ready(function () {
     map = L.PolarMap.map('map', {
         baseLayer: projectedTiles["EPSG:3571 Bering Sea"],
         center: [90, 135],
-        zoom: 12
+        zoom: 7
     });
 
     // Add Layer Control
