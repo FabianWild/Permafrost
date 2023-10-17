@@ -4,11 +4,7 @@ var map;
 // Create object to define tile provider settings and transformations.
 var projectedTiles = {
     "EPSG:3571 Bering Sea": L.PolarMap.layer3571,
-    "EPSG:3572 Alaska": L.PolarMap.layer3572,
-    "EPSG:3573 Canada": L.PolarMap.layer3573,
-    "EPSG:3574 Atlantic": L.PolarMap.layer3574,
-    "EPSG:3575 Europe": L.PolarMap.layer3575,
-    "EPSG:3576 Russia": L.PolarMap.layer3576
+    
 };
 
 // Set up next/prev linked list
@@ -29,8 +25,8 @@ $(document).ready(function () {
     // Load PolarMap
     map = L.PolarMap.map('map', {
         baseLayer: projectedTiles["EPSG:3571 Bering Sea"],
-        center: [90, 0],
-        zoom: 2
+        center: [90, 135],
+        zoom: 12
     });
 
     // Add Layer Control
@@ -122,10 +118,10 @@ $(document).ready(function () {
     });
 
     // Marker Pleistocenepark
-    L.marker([68.516, 161.435], { icon: pp_icon }).addTo(map).bindPopup(`<h4>Pleistocene Park</h4>`).openPopup();
+    L.marker([1142518.716605, 2095779.346041], { icon: pp_icon }).addTo(map).bindPopup(`<h4>Pleistocene Park</h4>`).openPopup();
 
     // Set View to Marker Position
-    map.setView([68.516, 161.435], 5);
+    map.setView([1142518.716605, 2095779.346041], 5);
 
     // Create a legend
     var legend = L.control({ position: 'bottomright' });
