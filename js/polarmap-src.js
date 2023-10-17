@@ -113,8 +113,8 @@ L.PolarMap.LAEATileLayer = L.PolarMap.TileLayer.extend({
     // defined globally in proj4js.
     // proj4def: null,
     // max zoom range from tile provider
-    minZoom: 0,
-    maxZoom: 18,
+    minZoom: 1,
+    maxZoom: 7,
     // use inverse coordinates if the provider is a TMS. Mapnik is not a TMS.
     tms: false,
     // origin of the map in projected coordinates
