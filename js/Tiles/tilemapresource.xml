@@ -7,6 +7,7 @@
       <Origin x="-12740428.28261174634099" y="-12739981.57725713774562"/>
       <TileFormat width="256" height="256" mime-type="image/png" extension="png"/>
       <TileSets profile="raster">
+        <TileSet href="0" units-per-pixel="190998.62157784125884" order="0"/>
         <TileSet href="1" units-per-pixel="95499.31078892062942" order="1"/>
         <TileSet href="2" units-per-pixel="47749.65539446031471" order="2"/>
         <TileSet href="3" units-per-pixel="23874.82769723015736" order="3"/>
