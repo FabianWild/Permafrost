@@ -2,28 +2,159 @@
 <html>
 
 <head>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css" />
-  <link rel="stylesheet" href="css/polarmap.css" />
-  <link rel="stylesheet" href="main.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet Map with WMTS</title>
 
-  <script src="main.js" defer></script>
-  <script src="js/jquery.js"></script>
-  <script src="	https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
-  <script src="js/proj4.js"></script>
-  <script src="js/proj4leaflet.js"></script>
-  <script src="js/shp.js"></script>
-  <script src="js/polarmap-src.js"></script>
-  <script src="js/leaflet.shpfile.js"></script>
-  <script src="js/autosize.js"></script>
+    <!-- Include Leaflet CSS and JavaScript -->
+    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.7.5/proj4-src.js"></script>
+    <script src="https://unpkg.com/proj4leaflet"></script>
+    <script src="js/leaflet.shpfile.js"></script>
+    <script src="js/shp.js"></script>
 </head>
 
 <body>
+    <!-- Create a container for the map -->
+    <div id="map" style="width: 1850px; height: 940px;"></div>
+    <div id="legend" class="legend"></div>
 
-  <div id="map"></div>
-  <div id="legend" class="legend"></div>
-  
-  <script>
-  </script>
+    <script>
+        var crsEPSG3571 = new L.Proj.CRS('EPSG:3571',
+            '+proj=laea +lat_0=90 +lon_0=180 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs', {
+            resolutions: [8192, 4096, 2048, 1024, 512, 256],
+            origin: [-4905000, 4940000],
+            bounds: L.bounds([-4194304, -4194304], [4194304, 4194304]),
+        }
+        );
+
+        // Initialize the map
+        var map = L.map('map', {
+            crs: crsEPSG3571,
+        }).setView([61, -90], 5); // Set the initial view and center coordinates
+
+        // Function to calculate the TileMatrix based on zoom level
+        function getTileMatrix(zoom) {
+            // Adjust this logic as needed for your specific TileMatrixSet
+            return "3571_" + zoom;
+        }
+
+        // Define layers
+        var baseLayers = {
+            "WMTS Tiles": L.tileLayer('http://basemap.arctic-sdi.org/mapcache/wmts/1.0.0/arctic_cascading/default/3571/{z}/{y}/{x}.png', {
+                layer: 'arctic_cascading',
+                format: 'image/png',
+                style: 'default',
+                attribution: 'ArcticSDI',
+                tileSize: 1200,
+                minZoom: 0,
+                maxZoom: 12,
+                tms: false,
+                crs: crsEPSG3571,
+                noWrap: true,
+                getTileUrl: function (coords) {
+                    var x = coords.x < 0 ? 0 : coords.x;
+                    return 'http://basemap.arctic-sdi.org/mapcache/wmts/1.0.0/arctic_cascading/default/3571/' + getTileMatrix(coords.z) + '/' + coords.y + '/' + x + '.png';
+                }
+            })
+        };
+
+        var overlays = {
+            "Yedoma Domain": L.shapefile("assets/Yedoma_Domain/IRYP_v2_yedoma_domain", {
+                crs: crsEPSG3571,
+            }),
+            "Yedoma Confidence": L.shapefile("assets/Yedoma_Confidence/IRYP_v2_yedoma_confidence_downsample", {
+                crs: crsEPSG3571,
+                onEachFeature: function (feature, layer) {
+                    layer.on('click', function () {
+            if (layer.feature && layer.feature.properties) {
+                var properties = layer.feature.properties;
+                var confidence = properties.confidence;
+                
+                // Get the coordinates
+                var coords;
+                if (layer._latlng) {
+                    // If it's a point feature
+                    coords = layer._latlng;
+                } else if (layer.getBounds) {
+                    // If it's a polygon
+                    coords = layer.getBounds().getCenter();
+                }
+
+                var popupContent = "<h4>Confidence/Sicherheit: " + confidence + "</h4>" +
+                                   "Coordinates: " + coords.lat.toFixed(5) + ", " + coords.lng.toFixed(5);  // display up to 5 decimal places
+                
+                layer.bindPopup(popupContent).openPopup();
+                        }
+                    });
+                    if (layer.feature.properties.confidence == 'confirmed') {
+                        layer.setStyle({ fillColor: 'green', color: "green" });
+                    } else if (layer.feature.properties.confidence == 'likely') {
+                        layer.setStyle({ fillColor: 'yellow', color: "yellow" });
+                    } else if (layer.feature.properties.confidence == 'uncertain') {
+                        layer.setStyle({ fillColor: 'orange', color: "orange" });
+                    }
+                }
+            }),
+            "Permafrost Extent": L.shapefile("assets/Permafrost_Extent/permaice", {
+                crs: crsEPSG3571,
+                fillColor: 'grey',
+                color: "grey"
+            }),
+            
+        };
+
+        // Add layers to the map
+        baseLayers["WMTS Tiles"].addTo(map);
+        overlays["Yedoma Domain"];
+        overlays["Yedoma Confidence"].addTo(map);
+        overlays["Permafrost Extent"];
+
+        // Add the layer control
+        L.control.layers(baseLayers, overlays).addTo(map);
+
+        // Icon for Pleistocenepark Marker
+        var pp_icon = L.icon({
+            iconUrl: 'icons/bison.png',
+            iconAnchor: [16, 37],
+            popupAnchor: [0, -37],
+        });
+
+        L.marker([68.51326155942857, 161.50600495305414], { icon: pp_icon }).bindPopup(`<h4>Pleistocene Park</h4>`).addTo(map)
+
+        // Set View to Marker Position
+        map.setView([68.51334805445944, 161.5061068733875], 0);
+
+        // Create a legend
+        var legend = L.control({ position: 'bottomright' });
+        legend.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'legend');
+            div.innerHTML =
+                '<h4>Legend - Yedoma Confidence</h4>' +
+                '<div class="legend-item">' +
+                '<div class="legend-box legend-box--blue"></div>' +
+                '<p>Yedoma Domain</p>' +
+                '</div>' +
+                '<div class="legend-item">' +
+                '<div class="legend-box legend-box--green"></div>' +
+                '<p>Confirmed</p>' +
+                '</div>' +
+                '<div class="legend-item">' +
+                '<div class="legend-box legend-box--yellow"></div>' +
+                '<p>Likely</p>' +
+                '</div>' +
+                '<div class="legend-item">' +
+                '<div class="legend-box legend-box--orange"></div>' +
+                '<p>Uncertain</p>' +
+                '</div>';
+            return div;
+        };
+
+        legend.addTo(map);
+
+    </script>
 </body>
+
 </html>

@@ -9,7 +9,7 @@ function Point(x, y, z) {
     this.x = x[0];
     this.y = x[1];
     this.z = x[2] || 0.0;
-  } else if(typeof x === 'object') {
+  }else if(typeof x === 'object'){
     this.x = x.x;
     this.y = x.y;
     this.z = x.z || 0.0;
@@ -18,7 +18,8 @@ function Point(x, y, z) {
     this.x = parseFloat(coords[0], 10);
     this.y = parseFloat(coords[1], 10);
     this.z = parseFloat(coords[2], 10) || 0.0;
-  } else {
+  }
+  else {
     this.x = x;
     this.y = y;
     this.z = z || 0.0;
@@ -33,7 +34,6 @@ Point.prototype.toMGRS = function(accuracy) {
   return mgrs.forward([this.x, this.y], accuracy);
 };
 module.exports = Point;
-
 },{"mgrs":67}],2:[function(_dereq_,module,exports){
 var parseCode = _dereq_("./parseCode");
 var extend = _dereq_('./extend');
@@ -2021,7 +2021,7 @@ var qsfnz = _dereq_('../common/qsfnz');
 var msfnz = _dereq_('../common/msfnz');
 var iqsfnz = _dereq_('../common/iqsfnz');
 /*
-  reference:  
+  reference:
     "Cartographic Projection Procedures for the UNIX Environment-
     A User's Manual" by Gerald I. Evenden,
     USGS Open File Report 90-284and Release 4 Interim Reports (2003)
@@ -2333,10 +2333,10 @@ exports.forward = function(p) {
   else {
 
     // Point is in the opposing hemisphere and is unprojectable
-    // We still need to return a reasonable point, so we project 
-    // to infinity, on a bearing 
+    // We still need to return a reasonable point, so we project
+    // to infinity, on a bearing
     // equivalent to the northern hemisphere equivalent
-    // This is a reasonable approximation for short shapes and lines that 
+    // This is a reasonable approximation for short shapes and lines that
     // straddle the horizon.
 
     x = this.x0 + this.infinity_dist * cosphi * Math.sin(dlon);
@@ -5404,7 +5404,7 @@ function getMinNorthing(zoneLetter) {
 },{}],68:[function(_dereq_,module,exports){
 module.exports={
   "name": "proj4",
-  "version": "2.3.14",
+  "version": "2.3.12",
   "description": "Proj4js is a JavaScript library to transform point coordinates from one coordinate system to another, including datum transformations.",
   "main": "lib/index.js",
   "directories": {
@@ -5437,9 +5437,9 @@ module.exports={
     "chai": "~1.8.1",
     "mocha": "~1.17.1",
     "grunt-mocha-phantomjs": "~0.4.0",
-    "browserify": "~12.0.1",
-    "grunt-browserify": "~4.0.1",
-    "grunt-contrib-uglify": "~0.11.1",
+    "browserify": "~3.24.5",
+    "grunt-browserify": "~1.3.0",
+    "grunt-contrib-uglify": "~0.3.2",
     "curl": "git://github.com/cujojs/curl.git",
     "istanbul": "~0.2.4",
     "tin": "~0.4.0"
@@ -5448,6 +5448,7 @@ module.exports={
     "mgrs": "~0.0.2"
   }
 }
+
 },{}],"./includedProjections":[function(_dereq_,module,exports){
 module.exports=_dereq_('hTEDpn');
 },{}],"hTEDpn":[function(_dereq_,module,exports){
