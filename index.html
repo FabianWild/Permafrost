@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaflet Map with WMTS</title>
+    <title>Pleistocene Park Permafrost Map</title>
 
     <!-- Include Leaflet CSS and JavaScript -->
     <link rel="stylesheet" href="main.css" />
@@ -14,6 +14,8 @@
     <script src="https://unpkg.com/proj4leaflet"></script>
     <script src="js/leaflet.shpfile.js"></script>
     <script src="js/shp.js"></script>
+    <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
+    <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css' rel='stylesheet' />
 </head>
 
 <body>
@@ -126,6 +128,7 @@
 
         // Set View to Marker Position
         map.setView([68.51334805445944, 161.5061068733875], 0);
+        map.addControl(new L.Control.Fullscreen());
 
         // Create a legend
         var legend = L.control({ position: 'bottomright' });
