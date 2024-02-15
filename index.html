@@ -15,7 +15,8 @@
     <script src="js/leaflet.shpfile.js"></script>
     <script src="js/shp.js"></script>
     <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
-    <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css' rel='stylesheet' />
+    <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css'
+        rel='stylesheet' />
 </head>
 
 <body>
@@ -24,71 +25,70 @@
     <div id="legend" class="legend"></div>
 
     <script>
-        var crsEPSG3571 = new L.Proj.CRS('EPSG:3571',
-            '+proj=laea +lat_0=90 +lon_0=180 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs', {
-            resolutions: [8192, 4096, 2048, 1024, 512, 256],
-            origin: [-4905000, 4940000],
-            bounds: L.bounds([-4194304, -4194304], [4194304, 4194304]),
-        }
+        // Define the EPSG:3995 projection
+        var crsEPSG3995 = new L.Proj.CRS('EPSG:3995',
+            '+proj=stere +lat_0=90 +lat_ts=71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs', {
+                resolutions: [
+                    67733.46880027094, 33866.73440013547, 16933.367200067736,
+                    8466.683600033868, 4233.341800016934, 2116.670900008467,
+                    1058.3354500042335, 529.1677250021168, 264.5838625010584,
+                    132.2919312505292
+                ],
+                origin: [-30636100, 30636100],
+                bounds: L.bounds([-30636100, -30636100], [30636100, 30636100])
+            }
         );
 
         // Initialize the map
         var map = L.map('map', {
-            crs: crsEPSG3571,
-        }).setView([61, -90], 5); // Set the initial view and center coordinates
+            crs: crsEPSG3995,
+            continuousWorld: true,
+            worldCopyJump: false,
+            center: [90, 0], // Adjust the center to your specific needs
+            zoom: 4
+        });
 
-        // Function to calculate the TileMatrix based on zoom level
-        function getTileMatrix(zoom) {
-            // Adjust this logic as needed for your specific TileMatrixSet
-            return "3571_" + zoom;
-        }
+        // Define the tile layer
+        var tileLayer = L.tileLayer('https://tiles.arcgis.com/tiles/C8EMgrsFcRFL6LrL/arcgis/rest/services/Arctic_Bathymetry_Basemap/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 9,
+            minZoom: 3,
+            tileSize: 256,
+            attribution: "NOAA National Centers for Environmental Information (NCEI); International Bathymetric Chart of the Arctic Ocean (IBCAO), General Bathymetric Chart of the Oceans (GEBCO) | Data: Strauss et al. (2022): Database of Ice-Rich Yedoma Permafrost Version 2 (IRYP v2). PANGAEA, https://doi.org/10.1594/PANGAEA.940078",
+            noWrap: true,
+            continuousWorld: false,
+            tms: false
+        });
 
-        // Define layers
-        var baseLayers = {
-            "WMTS Tiles": L.tileLayer('http://basemap.arctic-sdi.org/mapcache/wmts/1.0.0/arctic_cascading/default/3571/{z}/{y}/{x}.png', {
-                layer: 'arctic_cascading',
-                format: 'image/png',
-                style: 'default',
-                attribution: 'ArcticSDI',
-                tileSize: 1200,
-                minZoom: 0,
-                maxZoom: 12,
-                tms: false,
-                crs: crsEPSG3571,
-                noWrap: true,
-                getTileUrl: function (coords) {
-                    var x = coords.x < 0 ? 0 : coords.x;
-                    return 'http://basemap.arctic-sdi.org/mapcache/wmts/1.0.0/arctic_cascading/default/3571/' + getTileMatrix(coords.z) + '/' + coords.y + '/' + x + '.png';
-                }
-            })
-        };
+        // Add the tile layer to the map
+        tileLayer.addTo(map);
+  
 
         var overlays = {
             "Yedoma Domain": L.shapefile("assets/Yedoma_Domain/IRYP_v2_yedoma_domain", {
-                crs: crsEPSG3571,
+                crs: crsEPSG3995,
             }),
             "Yedoma Confidence": L.shapefile("assets/Yedoma_Confidence/IRYP_v2_yedoma_confidence_downsample", {
-                crs: crsEPSG3571,
+                crs: crsEPSG3995,
                 onEachFeature: function (feature, layer) {
                     layer.on('click', function () {
-            if (layer.feature && layer.feature.properties) {
-                var properties = layer.feature.properties;
-                var confidence = properties.confidence;
-                
-                // Get the coordinates
-                var coords;
-                if (layer._latlng) {
-                    // If it's a point feature
-                    coords = layer._latlng;
-                } else if (layer.getBounds) {
-                    // If it's a polygon
-                    coords = layer.getBounds().getCenter();
-                }
+                        if (layer.feature && layer.feature.properties) {
+                            var properties = layer.feature.properties;
+                            var confidence = properties.confidence;
 
-                var popupContent = "<h4>Confidence/Sicherheit: " + confidence + "</h4>" +
-                                   "Coordinates: " + coords.lat.toFixed(5) + ", " + coords.lng.toFixed(5);  // display up to 5 decimal places
-                
-                layer.bindPopup(popupContent).openPopup();
+                            // Get the coordinates
+                            var coords;
+                            if (layer._latlng) {
+                                // If it's a point feature
+                                coords = layer._latlng;
+                            } else if (layer.getBounds) {
+                                // If it's a polygon
+                                coords = layer.getBounds().getCenter();
+                            }
+
+                            var popupContent = "<h4>Confidence/Sicherheit: " + confidence + "</h4>" +
+                                "Coordinates: " + coords.lat.toFixed(5) + ", " + coords.lng.toFixed(5);  // display up to 5 decimal places
+
+                            layer.bindPopup(popupContent).openPopup();
                         }
                     });
                     if (layer.feature.properties.confidence == 'confirmed') {
@@ -101,33 +101,32 @@
                 }
             }),
             "Permafrost Extent": L.shapefile("assets/Permafrost_Extent/permaice", {
-                crs: crsEPSG3571,
+                crs: crsEPSG3995,
                 fillColor: 'grey',
                 color: "grey"
             }),
-            
+
         };
 
         // Add layers to the map
-        baseLayers["WMTS Tiles"].addTo(map);
-        overlays["Yedoma Domain"];
-        overlays["Yedoma Confidence"].addTo(map);
+        //baseLayers["WMTS Tiles"].addTo(map);
+        overlays["Yedoma Domain"].addTo(map);
+        overlays["Yedoma Confidence"];
         overlays["Permafrost Extent"];
 
         // Add the layer control
-        L.control.layers(baseLayers, overlays).addTo(map);
+        L.control.layers(overlays).addTo(map);
 
         // Icon for Pleistocenepark Marker
         var pp_icon = L.icon({
-            iconUrl: 'icons/bison.png',
+            iconUrl: 'icons/location-pin-solid.svg',
             iconAnchor: [16, 37],
             popupAnchor: [0, -37],
         });
 
         L.marker([68.51326155942857, 161.50600495305414], { icon: pp_icon }).bindPopup(`<h4>Pleistocene Park</h4>`).addTo(map)
 
-        // Set View to Marker Position
-        map.setView([68.51334805445944, 161.5061068733875], 0);
+        // Add Fullscreen
         map.addControl(new L.Control.Fullscreen());
 
         // Create a legend
