@@ -155,8 +155,14 @@
         };
 
         legend.addTo(map);
+        // Add a resize event listener to the window
+    window.addEventListener('resize', function() {
+        map.invalidateSize(); // This method is used to notify Leaflet that the container size changed
+});
+
 
     </script>
+    
 </body>
 
 </html>

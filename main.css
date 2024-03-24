@@ -3,9 +3,11 @@ padding: 0px;
 margin: 0px;
 }
 
-#map {
-min-width: 1870px;
-min-height: 940px;
+@media (max-width: 768px) {
+  #map {
+      width: 100%; /* Full width */
+      height: 400px; /* Adjust based on your preference */
+  }
 }
 
 .legend {
