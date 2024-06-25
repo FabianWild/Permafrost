@@ -17,6 +17,9 @@
     <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
     <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css'
         rel='stylesheet' />
+    <script src="https://cdn.jsdelivr.net/gh/maneoverland/leaflet.WorldMiniMap@1.0.0/dist/Control.WorldMiniMap.js" integrity="sha512-PFw8St3qenU1/dmwCfiYYN/bRcqY1p3+sBATR+rZ6622eyXOk/8izVtlmm/k8qW7KbRIJsku838WCV5LMs6FCg==" crossorigin=""></script>
+    <script src="js/Map.ContextMenu.js"></script>
+
 </head>
 
 <body>
@@ -45,9 +48,42 @@
             continuousWorld: true,
             worldCopyJump: false,
             center: [90, 0], // Adjust the center to your specific needs
-            zoom: 4
+            zoom: 4,
+            worldMiniMapControl: true,
+            contextmenu: true,
+            contextmenuWidth: 140,
+	            contextmenuItems: [{
+	                 text: 'Show coordinates',
+	                callback: showCoordinates
+	            }, '-', {
+	                text: 'Center map here',
+	                callback: centerMap
+	            }, '-', {
+	                text: 'Zoom in',
+	                 icon: 'images/zoom-in.png',
+	                callback: zoomIn
+	            }, '-', {
+	                text: 'Zoom out',
+	                icon: 'images/zoom-out.png',
+	                callback: zoomOut
+	            }]
         });
 
+function showCoordinates (e) {
+	alert(e.latlng);
+}
+
+function centerMap (e) {
+	map.panTo(e.latlng);
+}
+
+function zoomIn (e) {
+	map.zoomIn();
+}
+
+function zoomOut (e) {
+	map.zoomOut();
+}
         // Define the tile layer
         var tileLayer = L.tileLayer('https://tiles.arcgis.com/tiles/C8EMgrsFcRFL6LrL/arcgis/rest/services/Arctic_Bathymetry_Basemap/MapServer/tile/{z}/{y}/{x}', {
             maxZoom: 9,
